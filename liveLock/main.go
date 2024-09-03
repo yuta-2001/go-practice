@@ -1,4 +1,4 @@
-package liveLock
+package main
 
 import (
     "fmt"
