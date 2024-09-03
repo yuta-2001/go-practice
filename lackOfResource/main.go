@@ -1,4 +1,4 @@
-package lackOfResource
+package main
 
 import (
 	"sync"
@@ -17,7 +17,7 @@ func main() {
         var count int
         for begin := time.Now(); time.Since(begin) <= runtime; {
             sharedLock.Lock()
-            time.Sleep(3*time.Second)
+            time.Sleep(3*time.Nanosecond)
             sharedLock.Unlock()
             count++
         }
