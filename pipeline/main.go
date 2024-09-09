@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 )
 
 func main() {
@@ -71,25 +72,25 @@ func main() {
 
 
 	// generator pattern (repeat)
-	repeat := func(
-		done <-chan interface{},
-		values ...interface{},
-	) <-chan interface{} {
-		valueStream := make(chan interface{})
-		go func() {
-			defer close(valueStream)
-			for {
-				for _, v := range values {
-					select {
-					case <-done:
-						return
-					case valueStream <- v:
-					}
-				}
-			}
-		}()
-		return valueStream
-	}
+	// repeat := func(
+	// 	done <-chan interface{},
+	// 	values ...interface{},
+	// ) <-chan interface{} {
+	// 	valueStream := make(chan interface{})
+	// 	go func() {
+	// 		defer close(valueStream)
+	// 		for {
+	// 			for _, v := range values {
+	// 				select {
+	// 				case <-done:
+	// 					return
+	// 				case valueStream <- v:
+	// 				}
+	// 			}
+	// 		}
+	// 	}()
+	// 	return valueStream
+	// }
 
 	take := func(
 		done <-chan interface{},
@@ -110,10 +111,38 @@ func main() {
 		return takeStream
 	}
 
+	// done := make(chan interface{})
+	// defer close(done)
+
+	// for num := range take(done, repeat(done, 1), 10) {
+	// 	fmt.Printf("%v ", num)
+	// }
+
+	repeatFn := func(
+		done <-chan interface{},
+		fn func() interface{},
+	) <-chan interface{} {
+		valueStream := make(chan interface{})
+		go func() {
+			defer close(valueStream)
+			for {
+				select {
+				case <-done:
+					return
+				case valueStream <- fn():
+				}
+			}
+		}()
+
+		return valueStream
+	}
+
 	done := make(chan interface{})
 	defer close(done)
 
-	for num := range take(done, repeat(done, 1), 10) {
-		fmt.Printf("%v ", num)
+	rand := func() interface{} { return rand.Int() }
+
+	for num := range take(done, repeatFn(done, rand), 10) {
+		fmt.Println(num)
 	}
 }
